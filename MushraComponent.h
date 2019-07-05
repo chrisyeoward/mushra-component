@@ -39,10 +39,12 @@ public:
 		/** Destructor. */
 		virtual ~Listener()  {}
 		
-		/** Called when the button is clicked. */
+		/** Called when the submit button is clicked. */
 		virtual void mushraFormSubmitted (MushraComponent*) = 0;
 		
-		/** Called when the button's state changes. */
+		/** Called when all permutations have been completed. */
+		virtual void mushraFormCompleted (MushraComponent*) = 0;
+		
 	};
 	
 	/** Registers a listener to receive events when this form is submitted.
@@ -96,5 +98,7 @@ private:
 	Button* activeButton;
 	
 	void shuffleMapping();
+	
+	int test = 0;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MushraComponent)
 };

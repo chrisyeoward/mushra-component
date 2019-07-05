@@ -73,6 +73,8 @@ fileDirectory(destFileDirectory)
 	
 	resetForm();
 	
+	DBG("constructing");
+	DBG(test++);
 	
 	addAndMakeVisible(playPauseButton);
 	playPauseButton.setButtonText("Play");
@@ -116,9 +118,9 @@ void MushraComponent::paint (Graphics& g)
 	
 	float buttonWidth = sectionWidth - buttonSpacing;
 	float buttonHeight = sectionHeight/2;
-	float sliderHeight = (5 * sectionHeight) + 10;
+	float sliderHeight = (5 * sectionHeight) + 20;
 	
-	infoTextLabel.setBounds(0, 0, 6*sectionWidth, sectionHeight);
+	infoTextLabel.setBounds(0, 0, getWidth(), sectionHeight);
 	
 	
 	g.setColour (Colours::grey);
@@ -134,7 +136,7 @@ void MushraComponent::paint (Graphics& g)
 		float x = (buttonWidth + buttonSpacing) * (stimulusIndex + 1);
 		stimulusButtons[stimulusIndex].setBounds(x, buttonHeight/2 + sectionHeight, buttonWidth, buttonHeight);
 		
-		stimulusRatingSliders[stimulusIndex].setBounds(x, 2*sectionHeight, buttonWidth, sliderHeight);
+		stimulusRatingSliders[stimulusIndex].setBounds(x, 2*sectionHeight - 10, buttonWidth, sliderHeight);
 		stimulusRatingSliders[stimulusIndex].setTextBoxStyle(juce::Slider::TextBoxBelow, true, 0, 0);
 		
 		stimulusButtons[stimulusIndex].setToggleState(false, NotificationType::dontSendNotification);
@@ -151,9 +153,9 @@ void MushraComponent::paint (Graphics& g)
 	String buttonText = processor.getIsPlaying() ? "Pause" : "Play";
 	playPauseButton.setButtonText(buttonText);
 	playPauseButton.setBounds((stimulusCount + 1) * sectionWidth, (getHeight()/2) - sectionHeight, sectionWidth, buttonHeight);
+	playPauseButton.setToggleState(!processor.getIsPlaying(), NotificationType::dontSendNotification);
 	
-	
-	String status = "Stage " + String(processor.getCurrentPermutation() + 1) + " of " + String(processor.getNumberOfPermutations());
+	String status = "Stage " + String(processor.getCurrentStage() + 1) + " of " + String(processor.getNumberOfPermutations());
 	statusLabel.setText(status, NotificationType::dontSendNotification);
 	statusLabel.setBounds((stimulusCount + 1) * sectionWidth, (getHeight()/2) + sectionHeight, sectionWidth, buttonHeight);
 	
@@ -161,6 +163,7 @@ void MushraComponent::paint (Graphics& g)
 	{
 		activeButton->setToggleState(true, NotificationType::dontSendNotification);
 	}
+	
 }
 
 void MushraComponent::resized()
@@ -177,12 +180,26 @@ void MushraComponent::setInfoText(String text) {
 void MushraComponent::buttonClicked (Button* button)
 {
 	if(button == &submitButton) {
-		writeValuesToFile();
-		resetForm();
+		int scores[stimulusCount];
+		
+		for(int stimulusIndex = 0; stimulusIndex<stimulusCount; stimulusIndex++)
+		{
+			scores[indexToStimulusMapping.at(stimulusIndex)] = stimulusRatingSliders[stimulusIndex].getValue();
+		}
+		
+		processor.setScoresForPermutation(scores, processor.getCurrentPermutation());
 		
 		Component::BailOutChecker checker (this);
-		submitButtonListeners.callChecked (checker, [this] (Listener& l) { l.mushraFormSubmitted (this); });
-
+		
+		if(processor.isFinished()) {
+			writeValuesToFile();
+			submitButtonListeners.callChecked (checker, [this] (Listener& l) { l.mushraFormCompleted (this); });
+			processor.reset();
+		} else {
+			resetForm();
+			processor.goToNextStage();
+			submitButtonListeners.callChecked (checker, [this] (Listener& l) { l.mushraFormSubmitted (this); });
+		}
 	} else if (button == &playPauseButton) {
 		if(processor.getIsPlaying()) {
 			activeButton = nullptr;
@@ -211,6 +228,7 @@ void MushraComponent::buttonClicked (Button* button)
 
 void MushraComponent::sliderValueChanged(Slider* slider)
 {
+	DBG(slider->getValue());
 	
 }
 
@@ -273,7 +291,7 @@ void MushraComponent::removeListener (Listener* l)   { submitButtonListeners.rem
 
 void MushraComponent::resetForm() {
 	activeButton = nullptr;
-	processor.setActiveStimulus(-1);
+//	processor.setActiveStimulus(-1);
 	shuffleMapping();
 	for(int stimulusIndex = 0; stimulusIndex < stimulusCount; stimulusIndex++)
 	{
