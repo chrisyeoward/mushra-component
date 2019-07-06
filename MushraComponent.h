@@ -62,6 +62,8 @@ public:
 	
 	void setInfoText(String text);
 	
+	void setScaleLabels(String* labels);
+	
 private:
 	
 	MushraProcessor& processor;

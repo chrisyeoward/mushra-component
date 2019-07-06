@@ -64,7 +64,7 @@ fileDirectory(destFileDirectory)
 		
 		addAndMakeVisible(stimulusRatingSliders[stimulusIndex]);
 		stimulusRatingSliders[stimulusIndex].addListener(this);
-		stimulusRatingSliders[stimulusIndex].setRange (0.0, 100.0, 1.0);
+		stimulusRatingSliders[stimulusIndex].setRange (0.0, 100.0, 0.1);
 		stimulusRatingSliders[stimulusIndex].setSliderStyle(Slider::LinearVertical);
 		stimulusRatingSliders[stimulusIndex].hideTextBox(true);
 		
@@ -155,7 +155,7 @@ void MushraComponent::paint (Graphics& g)
 	playPauseButton.setBounds((stimulusCount + 1) * sectionWidth, (getHeight()/2) - sectionHeight, sectionWidth, buttonHeight);
 	playPauseButton.setToggleState(!processor.getIsPlaying(), NotificationType::dontSendNotification);
 	
-	String status = "Stage " + String(processor.getCurrentStage() + 1) + " of " + String(processor.getNumberOfPermutations());
+	String status = "Scene " + String(processor.getCurrentStage() + 1) + " of " + String(processor.getNumberOfPermutations());
 	statusLabel.setText(status, NotificationType::dontSendNotification);
 	statusLabel.setBounds((stimulusCount + 1) * sectionWidth, (getHeight()/2) + sectionHeight, sectionWidth, buttonHeight);
 	
@@ -164,6 +164,14 @@ void MushraComponent::paint (Graphics& g)
 		activeButton->setToggleState(true, NotificationType::dontSendNotification);
 	}
 	
+}
+
+void MushraComponent::setScaleLabels(String* labels){
+	ExcellentLabel.setText(labels[4], dontSendNotification);
+	GoodLabel.setText(labels[3], dontSendNotification);
+	FairLabel.setText(labels[2], dontSendNotification);
+	PoorLabel.setText(labels[1], dontSendNotification);
+	BadLabel.setText(labels[0], dontSendNotification);
 }
 
 void MushraComponent::resized()
@@ -187,14 +195,15 @@ void MushraComponent::buttonClicked (Button* button)
 			scores[indexToStimulusMapping.at(stimulusIndex)] = stimulusRatingSliders[stimulusIndex].getValue();
 		}
 		
-		processor.setScoresForPermutation(scores, processor.getCurrentPermutation());
+		processor.setScoresForScene(scores, processor.getCurrentPermutation());
 		
 		Component::BailOutChecker checker (this);
 		
 		if(processor.isFinished()) {
 			writeValuesToFile();
 			submitButtonListeners.callChecked (checker, [this] (Listener& l) { l.mushraFormCompleted (this); });
-			processor.reset();
+			processor.resetEvaluation();
+			resetForm();
 		} else {
 			resetForm();
 			processor.goToNextStage();

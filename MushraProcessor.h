@@ -16,26 +16,18 @@
 class MushraProcessor
 {
 public:
-	MushraProcessor(const int stimulusCount, int numberOfPermutations) :
+	MushraProcessor(const int stimulusCount, int numberOfScenes) :
 	stimulusCount(stimulusCount),
-	numberOfPermutations(numberOfPermutations) {
+	numberOfScenes(numberOfScenes) {
 		
-		scores.resize(numberOfPermutations, std::vector<int>(stimulusCount, 0.0));
+		scores.resize(numberOfScenes, std::vector<int>(stimulusCount, 0.0));
 		
-		for(int permutation = 0; permutation < numberOfPermutations; permutation++)
+		for(int scene = 0; scene < numberOfScenes; scene++)
 		{
-			permutationOrder.push_back(permutation);
+			sceneOrder.push_back(scene);
 		}
 		
-		unsigned seed = (unsigned) std::chrono::system_clock::now().time_since_epoch().count();
-		
-		shuffle (permutationOrder.begin(), permutationOrder.end(), std::default_random_engine(seed));
-		
-		permutation = permutationOrder[0];
-		
-		std::cout << "permutation order:";
-		for (int& x: permutationOrder) std::cout << ' ' << x;
-		std::cout << '\n';
+		shuffleSceneOrder();
 
 	};
 	
@@ -55,63 +47,73 @@ public:
 	}
 	
 	int getNumberOfPermutations() {
-		return numberOfPermutations;
+		return numberOfScenes;
 	}
 	
 	int getCurrentPermutation() {
-		return permutation;
+		return currentScene;
 	}
 	
 	int getCurrentStage() {
-		return stageNumber;
+		return sceneCount;
 	}
 	
 	void goToNextStage() {
 		if(!isFinished()) {
-			stageNumber++;
+			sceneCount++;
 			
-			permutation = permutationOrder[stageNumber];
-			//		permutation++;
-			//		permutation %= numberOfPermutations;
+			currentScene = sceneOrder[sceneCount];
 			
-			DBG("permutation");
-			DBG(permutation);
-			changePermutation(permutation);
+			DBG("scene");
+			DBG(currentScene);
+			changeScene(currentScene);
 		}
 		isPlaying = false;
 	}
 	
 	bool isFinished() {
-		return stageNumber >= numberOfPermutations - 1;
+		return sceneCount >= numberOfScenes - 1;
 	}
 	
-	void setScoresForPermutation(int* updatedScores, int permutation) {
+	void setScoresForScene(int* updatedScores, int scene) {
 		
 		for(int stimulus = 0; stimulus < stimulusCount; stimulus++ ) {
-			scores[permutation][stimulus] = updatedScores[stimulus];
+			scores[scene][stimulus] = updatedScores[stimulus];
 		}
 	}
 	
-	void reset() {
-		stageNumber = 0;
-		scores.resize(numberOfPermutations, std::vector<int>(stimulusCount, 0.0));
+	void resetEvaluation() {
+		sceneCount = 0;
+		scores.resize(numberOfScenes, std::vector<int>(stimulusCount, 0.0));
 		isPlaying = false;
+		shuffleSceneOrder();
 	}
 	
+	void shuffleSceneOrder() {
+		unsigned seed = (unsigned) std::chrono::system_clock::now().time_since_epoch().count();
+		
+		shuffle (sceneOrder.begin(), sceneOrder.end(), std::default_random_engine(seed));
+		
+		currentScene = sceneOrder[0];
+		
+		std::cout << "permutation order:";
+		for (int& x: sceneOrder) std::cout << ' ' << x;
+		std::cout << '\n';
+	}
 	
 protected:
 	int stimulusCount;
 	int selectedStimulus = 0;
 	bool isPlaying = false;
-	int numberOfPermutations;
-	int permutation;
+	int numberOfScenes;
+	int currentScene;
 	
-	int stageNumber = 0;
+	int sceneCount = 0;
 	
 
-	std::vector<int> permutationOrder;
+	std::vector<int> sceneOrder;
 	
-	virtual void changePermutation(int newPermutationIndex) = 0;
+	virtual void changeScene(int) = 0;
 
 	std::vector<std::vector<int>> scores;
 
