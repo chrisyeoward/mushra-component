@@ -101,6 +101,10 @@ public:
 		std::cout << '\n';
 	}
 	
+	int getScoreFor(int scene, int stimulus) {
+		return scores[scene][stimulus];
+	}
+	
 protected:
 	int stimulusCount;
 	int selectedStimulus = 0;

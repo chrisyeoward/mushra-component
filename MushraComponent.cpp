@@ -268,21 +268,32 @@ void MushraComponent::writeValuesToFile()
 		outputs[indexToStimulusMapping.at(stimulusIndex)] = stimulusRatingSliders[stimulusIndex].getValue();
 	}
 	
-	String line1 = String(0);
-	String line2 = String(outputs[0]);
-	for(int stimulusIndex = 1; stimulusIndex<stimulusCount; stimulusIndex++)
+	String line1 = "scene\\method," + String(0);
+	for(int stimulusIndex = 1; stimulusIndex < stimulusCount; stimulusIndex++)
 	{
 		line1 += ",";
 		line1 += String(stimulusIndex);
-		line2 += ",";
-		line2 += String(outputs[stimulusIndex]);
 	}
 	line1 += "\n";
 	
 	output.setNewLineString("\n");
 	
 	output.writeString(line1);
-	output.writeString(line2);
+	
+	for(int scene = 0; scene < processor.getNumberOfPermutations(); scene++)
+	{
+		String line = String(scene);
+		
+		for(int method = 0; method < stimulusCount; method ++) {
+			line += ",";
+			line += String(processor.getScoreFor(scene, method));
+		}
+		
+		line += "\n";
+		output.writeString(line);
+	}
+	
+//	output.writeString(line2);
 	
 	output.flush(); // (called explicitly to force an fsync on posix)
 	
