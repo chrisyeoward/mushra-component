@@ -64,6 +64,8 @@ public:
 	
 	void setScaleLabels(String* labels);
 	
+	void setFilePrefix(String prefix);
+	
 private:
 	
 	MushraProcessor& processor;
@@ -96,6 +98,7 @@ private:
 	
 	String fileDirectory;
 	File file;
+	String filePrefix;
 	
 	Button* activeButton;
 	

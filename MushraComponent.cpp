@@ -245,7 +245,7 @@ void MushraComponent::writeValuesToFile()
 {
 	std::cout << "write to file!";
 	
-	String filename = "chris";
+	String filename = filePrefix != "" ? filePrefix : "evaluation";
 	filename += "_" + Time::getCurrentTime().toISO8601(true);
 	filename += ".csv";
 	String filepath = fileDirectory + filename;
@@ -306,6 +306,11 @@ void MushraComponent::resetForm() {
 	{
 		stimulusRatingSliders[stimulusIndex].setValue(0.0);
 	}
+}
+
+void MushraComponent::setFilePrefix(String prefix)
+{
+	filePrefix = prefix;
 }
 
 void MushraComponent::shuffleMapping() {
