@@ -66,6 +66,10 @@ public:
 	
 	void setFilePrefix(String prefix);
 	
+	void setSceneDescription(String);
+	
+	void writeValuesToFile();
+	
 private:
 	
 	MushraProcessor& processor;
@@ -88,13 +92,12 @@ private:
 	
 	Label statusLabel;
 	
+	Label sceneDescriptionLabel;
 	
 	std::vector<int> indexToStimulusMapping;
 	
 	TextButton submitButton;
 	TextButton playPauseButton;
-	
-	void writeValuesToFile();
 	
 	String fileDirectory;
 	File file;
@@ -103,6 +106,9 @@ private:
 	Button* activeButton;
 	
 	void shuffleMapping();
+	
+	TextButton saveAndExitButton;
+
 	
 	int test = 0;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MushraComponent)

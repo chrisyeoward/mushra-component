@@ -22,6 +22,7 @@ FairLabel("", "Fair"),
 PoorLabel("", "Poor"),
 BadLabel("", "Bad"),
 statusLabel("", "Stage 1"),
+sceneDescriptionLabel("", ""),
 fileDirectory(destFileDirectory)
 {
     // In your constructor, you should add any child components, and
@@ -72,9 +73,8 @@ fileDirectory(destFileDirectory)
 	}
 	
 	resetForm();
-	
-	DBG("constructing");
-	DBG(test++);
+	processor.resetEvaluation();
+
 	
 	addAndMakeVisible(playPauseButton);
 	playPauseButton.setButtonText("Play");
@@ -86,6 +86,14 @@ fileDirectory(destFileDirectory)
 	
 	addAndMakeVisible(statusLabel);
 	statusLabel.setJustificationType(Justification::centred);
+	
+	addAndMakeVisible(sceneDescriptionLabel);
+	sceneDescriptionLabel.setJustificationType(Justification::centred);
+	
+	
+	addAndMakeVisible(saveAndExitButton);
+	saveAndExitButton.addListener(this);
+//	saveAndExitButton.setButtonText("Save and exit");
 }
 
 MushraComponent::~MushraComponent()
@@ -159,10 +167,14 @@ void MushraComponent::paint (Graphics& g)
 	statusLabel.setText(status, NotificationType::dontSendNotification);
 	statusLabel.setBounds((stimulusCount + 1) * sectionWidth, (getHeight()/2) + sectionHeight, sectionWidth, buttonHeight);
 	
+	sceneDescriptionLabel.setBounds((stimulusCount + 1) * sectionWidth, (getHeight()/2) + 2 * sectionHeight, sectionWidth, buttonHeight);
+	
 	if(activeButton != NULL)
 	{
 		activeButton->setToggleState(true, NotificationType::dontSendNotification);
 	}
+	
+	saveAndExitButton.setBounds(getWidth() - buttonHeight, getHeight() - buttonHeight, buttonHeight, buttonHeight);
 	
 }
 
@@ -214,7 +226,7 @@ void MushraComponent::buttonClicked (Button* button)
 			activeButton = nullptr;
 			processor.setIsPlaying(false);
 		} else {
-			processor.setActiveStimulus(0);
+			processor.setActiveStimulus(indexToStimulusMapping[0]);
 			activeButton = &stimulusButtons[0];
 		}
 		
@@ -222,13 +234,28 @@ void MushraComponent::buttonClicked (Button* button)
 	{
 		processor.setActiveStimulus(0);
 		activeButton = button;
-//		button->setToggleState(true, NotificationType::sendNotification);
+	} else if (button == &saveAndExitButton){
+		int scores[stimulusCount];
+		
+		for(int stimulusIndex = 0; stimulusIndex<stimulusCount; stimulusIndex++)
+		{
+			scores[indexToStimulusMapping.at(stimulusIndex)] = stimulusRatingSliders[stimulusIndex].getValue();
+		}
+		
+		processor.setScoresForScene(scores, processor.getCurrentPermutation());
+		
+		Component::BailOutChecker checker (this);
+		
+		writeValuesToFile();
+		submitButtonListeners.callChecked (checker, [this] (Listener& l) { l.mushraFormCompleted (this); });
+		processor.resetEvaluation();
+		resetForm();
+		
 	} else {
 		for(int buttonIndex = 0; buttonIndex < stimulusCount; buttonIndex++)
 		{
 			if(button == &(stimulusButtons[buttonIndex])) {
 				activeButton = button;
-//				button->setToggleState(true, NotificationType::sendNotification);
 				processor.setActiveStimulus(indexToStimulusMapping[buttonIndex]);
 			}
 		}
@@ -237,7 +264,7 @@ void MushraComponent::buttonClicked (Button* button)
 
 void MushraComponent::sliderValueChanged(Slider* slider)
 {
-	DBG(slider->getValue());
+//	DBG(slider->getValue());
 	
 }
 
@@ -322,6 +349,11 @@ void MushraComponent::resetForm() {
 void MushraComponent::setFilePrefix(String prefix)
 {
 	filePrefix = prefix;
+}
+
+void MushraComponent::setSceneDescription(String description)
+{
+	sceneDescriptionLabel.setText(description, dontSendNotification);
 }
 
 void MushraComponent::shuffleMapping() {
