@@ -2,7 +2,7 @@ JUCE UI component for a MUltiple Stimulus Hidden Anchor (MUSHRA) style perceptua
 
 Randomises the order in which audio scenes (i.e. source materials) are presented, and the association between slider number and stimulus for each scene.
 
-![alt text][https://github.com/chrisyeoward/mushra-component/raw/master/src/assets/interface.png "User Interface"]
+![alt text](https://github.com/chrisyeoward/mushra-component/blob/master/assets/interface.png "User Interface")
 
 
 Consists of:
